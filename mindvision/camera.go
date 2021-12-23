@@ -13,7 +13,6 @@ import "C"
 import (
 	"fmt"
 	"log"
-	"time"
 	"unsafe"
 	//"github.com/myafeier/log"
 )
@@ -133,7 +132,7 @@ func (s *Camera) ActiveCamera(idx int, exposeSecond float32) (err error) {
 }
 
 // 获取一张图片
-func (s *Camera) Grab() (fn string, err error) {
+func (s *Camera) Grab(fn string) (err error) {
 	// 分配RGB buffer，用来存放ISP输出的图像
 	//备注：从相机传输到PC端的是RAW数据，在PC端通过软件ISP转为RGB数据（如果是黑白相机就不需要转换格式，但是ISP还有其它处理，所以也需要分配这个buffer）
 
@@ -164,8 +163,18 @@ func (s *Camera) Grab() (fn string, err error) {
 		log.Println(err.Error())
 		return
 	}
-	fn = fmt.Sprintf(s.filepath+"%d.bmp", time.Now().UnixNano())
+	fn = fmt.Sprintf(s.filepath + fn)
 	status = C.CameraSaveImage(C.handle, C.CString(fn), outputPtr, (*C.tSdkFrameHead)(unsafe.Pointer(&frameInfo)), C.FILE_BMP, 0)
+	err = sdkError(status)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+	return
+}
+
+func (s *Camera) SetExpose(expose float32) (err error) {
+	status := C.CameraSetExposureTime(C.handle, C.double(expose*1000000))
 	err = sdkError(status)
 	if err != nil {
 		log.Println(err.Error())
