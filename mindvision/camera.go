@@ -29,17 +29,18 @@ type Camera struct {
 	filepath string
 }
 
-func (s *Camera) Init(filepath string) {
+func (s *Camera) Init(filepath string) (err error) {
 	status := C.CameraSdkInit(C.int(0))
-	err := sdkError(status)
+	err = sdkError(status)
 	if err != nil {
-		panic(err)
+		return
 	}
 	if filepath == "" {
 		s.filepath = "./"
 	} else {
 		s.filepath = filepath
 	}
+	return
 }
 
 func (s *Camera) UnInit() {
